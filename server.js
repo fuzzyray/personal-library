@@ -1,5 +1,8 @@
 'use strict';
 
+const https = require('https');
+const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -37,9 +40,25 @@ app.use(function(req, res, next) {
     .send('Not Found');
 });
 
+//Setup SSL server, if enabled
+const certOptions = {
+  key: fs.readFileSync(path.resolve('certs/server.key')),
+  cert: fs.readFileSync(path.resolve('certs/server.crt')),
+};
+
+let server;
+let PORT;
+if (!!process.env.ENABLE_SSL) {
+  server = https.createServer(certOptions, app);
+  PORT = 8443;
+} else {
+  server = app;
+  PORT = 3000;
+}
+
 //Start our server and tests!
-app.listen(process.env.PORT || 3000, function() {
-  console.log('Listening on port ' + process.env.PORT);
+const listener = server.listen(PORT, function() {
+  console.log(`Listening on port ${listener.address().port}`);
   if (process.env.NODE_ENV === 'test') {
     console.log('Running Tests...');
     setTimeout(function() {
