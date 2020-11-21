@@ -37,11 +37,13 @@
 <hr style='margin: 50px'>
 <div id='sampleui'>
     <h2 style="text-align: left">Sample Front-End</h2>
-    <form id="newBookForm" class="border">
-        <label for="bookTitleToAdd">New Book Title</label>
-        <input type="text" id="bookTitleToAdd" name="title" placeholder="Moby Dick" style="width: 295px">
+    <div class="border">
+        <form id="newBookForm">
+            <label for="bookTitleToAdd">New Book Title</label>
+            <input type="text" id="bookTitleToAdd" name="title" placeholder="Moby Dick" style="width: 295px">
+        </form>
         <button type="submit" value="Submit" id="newBook">Submit New Book!</button>
-    </form>
+    </div>
     <div id='display'></div>
     <div id='bookDetail' class='border'>
         <p id='detailTitle'>Select a book to see it's details and comments</p>
