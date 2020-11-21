@@ -30,17 +30,42 @@ const getBookCommentCount = (bookId) => {
   });
 };
 
-const createBookResult = async (data) => {
+const createBookListing = async (books) => {
   const result = [];
-  for (let i = 0; i < data.length; i++) {
-    const commentCount = await getBookCommentCount(data[i]._id);
+  for (let i = 0; i < books.length; i++) {
+    const commentCount = await getBookCommentCount(books[i]._id);
     result.push({
-      '_id': data[i]._id,
-      'title': data[i].title,
+      '_id': books[i]._id,
+      'title': books[i].title,
       'commentcount': commentCount,
     });
   }
   return result;
+};
+
+const createBookDetails = (bookId, res) => {
+  getBookByBookId(bookId, (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(400).send(err._message);
+    } else if (!data) {
+      res.send('no book exists');
+    } else {
+      getCommentsByBookId(data._id, (err, commentData) => {
+        if (err) {
+          console.error(err);
+          res.status(400).send(err._message);
+        } else {
+          const comments = commentData.map(d => d.comment);
+          res.json({
+            _id: data._id,
+            title: data.title,
+            comments: comments,
+          });
+        }
+      });
+    }
+  });
 };
 
 module.exports = function(app) {
@@ -54,7 +79,7 @@ module.exports = function(app) {
           console.error(err);
           res.status(400).send(err._message);
         } else {
-          const result = createBookResult(data)
+          const result = createBookListing(data)
             .then(result => {
               res.json(result);
             })
@@ -103,28 +128,7 @@ module.exports = function(app) {
     //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
     .get(function(req, res) {
       const bookId = req.params.id;
-      getBookByBookId(bookId, (err, data) => {
-        if (err) {
-          console.error(err);
-          res.status(400).send(err._message);
-        } else if (!data) {
-          res.send('no book exists');
-        } else {
-          getCommentsByBookId(data._id, (err, commentData) => {
-            if (err) {
-              console.error(err);
-              res.status(400).send(err._message);
-            } else {
-              const comments = commentData.map(d => d.comment);
-              res.json({
-                _id: data._id,
-                title: data.title,
-                comments: comments,
-              });
-            }
-          });
-        }
-      });
+      createBookDetails(bookId, res);
     })
 
     .post(function(req, res) {
@@ -144,19 +148,7 @@ module.exports = function(app) {
                 console.error(err);
                 res.status(400).send(err._message);
               } else {
-                getCommentsByBookId(bookData._id, (err, commentData) => {
-                  if (err) {
-                    console.error(err);
-                    res.status(400).send(err._message);
-                  } else {
-                    const comments = commentData.map(d => d.comment);
-                    res.json({
-                      _id: bookData._id,
-                      title: bookData.title,
-                      comments: comments,
-                    });
-                  }
-                });
+                createBookDetails(bookId, res);
               }
             });
           }
@@ -181,3 +173,4 @@ module.exports = function(app) {
       });
     });
 };
+
