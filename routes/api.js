@@ -10,11 +10,15 @@
 
 const createOrFindBook = require('../db/dbfunctions').createOrFindBook;
 const getAllBooks = require('../db/dbfunctions').getAllBooks;
+const getBookByBookId = require('../db/dbfunctions').getBookByBookId;
 const getCommentCountByBookId = require(
   '../db/dbfunctions').getCommentCountByBookId;
+const getCommentsByBookId = require('../db/dbfunctions').getCommentsByBookId;
 const deleteAllBooks = require('../db/dbfunctions').deleteAllBooks;
+const createComment = require('../db/dbfunctions').createComment;
+const deleteBookById = require('../db/dbfunctions').deleteBookById;
 
-const getBookComments = (bookId) => {
+const getBookCommentCount = (bookId) => {
   return new Promise((resolve, reject) => {
     getCommentCountByBookId(bookId, (err, data) => {
       if (err) {
@@ -29,7 +33,7 @@ const getBookComments = (bookId) => {
 const createBookResult = async (data) => {
   const result = [];
   for (let i = 0; i < data.length; i++) {
-    const commentCount = await getBookComments(data[i]._id);
+    const commentCount = await getBookCommentCount(data[i]._id);
     result.push({
       '_id': data[i]._id,
       'title': data[i].title,
@@ -96,20 +100,78 @@ module.exports = function(app) {
     });
 
   app.route('/api/books/:id')
+    //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
     .get(function(req, res) {
-      let bookid = req.params.id;
-      //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
+      const bookId = req.params.id;
+      getBookByBookId(bookId, (err, data) => {
+        if (err) {
+          console.error(err);
+          res.status(400).send(err._message);
+        } else {
+          getCommentsByBookId(data._id, (err, commentData) => {
+            if (err) {
+              console.error(err);
+              res.status(400).send(err._message);
+            } else {
+              const comments = commentData.map(d => d.comment);
+              res.json({
+                _id: data._id,
+                title: data.title,
+                comments: comments,
+              });
+            }
+          });
+        }
+      });
     })
 
     .post(function(req, res) {
-      let bookid = req.params.id;
-      let comment = req.body.comment;
       //json res format same as .get
+      const bookId = req.params.id;
+      const comment = req.body.comment;
+      if (!!comment) {
+        getBookByBookId(bookId, (err, bookData) => {
+          if (err) {
+            console.error(err);
+            res.status(400).send(err._message);
+          } else {
+            createComment(bookData._id, comment, (err, data) => {
+              if (err) {
+                console.error(err);
+                res.status(400).send(err._message);
+              } else {
+                getCommentsByBookId(bookData._id, (err, commentData) => {
+                  if (err) {
+                    console.error(err);
+                    res.status(400).send(err._message);
+                  } else {
+                    const comments = commentData.map(d => d.comment);
+                    res.json({
+                      _id: bookData._id,
+                      title: bookData.title,
+                      comments: comments,
+                    });
+                  }
+                });
+              }
+            });
+          }
+        });
+      } else {
+        res.send('missing required field comment');
+      }
     })
 
     .delete(function(req, res) {
-      let bookid = req.params.id;
       //if successful response will be 'delete successful'
+      const bookId = req.params.id;
+      deleteBookById(bookId, (err, data) => {
+        if (err) {
+          console.error(err);
+          res.status(400).send(err._message);
+        } else {
+          res.send('delete successful');
+        }
+      });
     });
-
 };

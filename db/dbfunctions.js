@@ -40,21 +40,41 @@ const createOrFindBook = (title, cb) => {
   });
 };
 
-const createComment = (comment, cb) => {
-  cb(null, {msg: 'Not Implemented'});
+const createComment = (bookId, comment, cb) => {
+  getBookByBookId(bookId, (err, book) => {
+    if (err) {
+      cb(err, null);
+    } else {
+      const newComment = new Comment({book: book._id, comment: comment});
+      newComment.save((err, data) => {
+        if (err) {
+          cb(err, null);
+        } else {
+          cb(null, data);
+        }
+      });
+    }
+  });
 };
 
 // Read
-const getBookByTitle = (title, cb) => {
-  cb(null, {msg: 'Not Implemented'});
+const getBookByBookId = (bookId, cb) => {
+  Book.find({_id: bookId}, (err, data) => {
+    if (err) {
+      cb(err, null);
+    } else {
+      cb(null, data[0]);
+    }
+  });
 };
 
 const getCommentCountByBookId = (bookId, cb) => {
   Comment.countDocuments({book: bookId}, (err, data) => {
     if (err) {
       cb(err, null);
-    } else
+    } else {
       cb(null, data);
+    }
   });
 };
 
@@ -62,8 +82,9 @@ const getCommentsByBookId = (bookId, cb) => {
   Comment.find({book: bookId}, (err, data) => {
     if (err) {
       cb(err, null);
-    } else
+    } else {
       cb(null, data);
+    }
   });
 };
 
@@ -90,25 +111,35 @@ const updateCommentById = (commentId, cb) => {
 
 // Delete
 const deleteBookById = (bookId, cb) => {
-  cb(null, {msg: 'Not Implemented'});
+  Book.findByIdAndRemove(bookId, {useFindAndModify: false}, (err, book) => {
+    if (err) {
+      cb(err, null);
+    } else {
+      Comment.deleteMany({book: book._id}, (err, data) => {
+        if (err) {
+          cb(err, null);
+        } else {
+          cb(null, data);
+        }
+      });
+    }
+  });
 };
 
 const deleteAllBooks = (cb) => {
   Comment.deleteMany({}, (err, data) => {
     if (err) {
-      cb(err, null)
+      cb(err, null);
     } else {
-      console.log('comments', data)
       Book.deleteMany({}, (err, data) => {
         if (err) {
-          cb(err, null)
+          cb(err, null);
         } else {
-          console.log('books', data)
-          cb(null, data)
+          cb(null, data.deletedCount);
         }
-      })
+      });
     }
-  })
+  });
 };
 
 exports.connect = connect;
@@ -117,3 +148,6 @@ exports.getAllBooks = getAllBooks;
 exports.getCommentsByBookId = getCommentsByBookId;
 exports.getCommentCountByBookId = getCommentCountByBookId;
 exports.deleteAllBooks = deleteAllBooks;
+exports.getBookByBookId = getBookByBookId;
+exports.createComment = createComment;
+exports.deleteBookById = deleteBookById;
