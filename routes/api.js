@@ -107,6 +107,8 @@ module.exports = function(app) {
         if (err) {
           console.error(err);
           res.status(400).send(err._message);
+        } else if (!data) {
+          res.send('no book exists');
         } else {
           getCommentsByBookId(data._id, (err, commentData) => {
             if (err) {
@@ -134,6 +136,8 @@ module.exports = function(app) {
           if (err) {
             console.error(err);
             res.status(400).send(err._message);
+          } else if (!bookData) {
+            res.send('no book exists');
           } else {
             createComment(bookData._id, comment, (err, data) => {
               if (err) {
@@ -169,6 +173,8 @@ module.exports = function(app) {
         if (err) {
           console.error(err);
           res.status(400).send(err._message);
+        } else if (!data) {
+          res.send('no book exists');
         } else {
           res.send('delete successful');
         }
