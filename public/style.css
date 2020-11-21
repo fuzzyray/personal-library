@@ -39,3 +39,7 @@ label {
 input {
   margin-bottom: 5px;
 }
+
+.bookItem {
+  cursor: pointer;
+}
