@@ -12,6 +12,9 @@ const apiRoutes = require('./routes/api.js');
 const fccTestingRoutes = require('./routes/fcctesting.js');
 const runner = require('./test-runner');
 
+// Connect to database
+require('./db/dbfunctions').connect(process.env.DB);
+
 const app = express();
 
 // Log all requests
