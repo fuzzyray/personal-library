@@ -51,15 +51,15 @@ app.use(function(req, res, next) {
     .send('Not Found');
 });
 
-//Setup SSL server, if enabled
-const certOptions = {
-  key: fs.readFileSync(path.resolve('certs/server.key')),
-  cert: fs.readFileSync(path.resolve('certs/server.crt')),
-};
-
 let server;
 let PORT;
 if (!!process.env.ENABLE_SSL) {
+  //Setup SSL server, if enabled
+  const certOptions = {
+    key: fs.readFileSync(path.resolve('certs/server.key')),
+    cert: fs.readFileSync(path.resolve('certs/server.crt')),
+  };
+
   server = https.createServer(certOptions, app);
   PORT = 8443;
 } else {
