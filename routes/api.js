@@ -46,15 +46,15 @@ const createBookListing = async (books) => {
 const createBookDetails = (bookId, res) => {
   getBookByBookId(bookId, (err, data) => {
     if (err) {
-      console.error(err);
-      res.status(400).send(err._message);
+      console.error(err.message)
+      res.send('no book exists');
     } else if (!data) {
       res.send('no book exists');
     } else {
       getCommentsByBookId(data._id, (err, commentData) => {
         if (err) {
-          console.error(err);
-          res.status(400).send(err._message);
+          console.error(err.message);
+          res.send('no book exists');
         } else {
           const comments = commentData.map(d => d.comment);
           res.json({
@@ -77,7 +77,7 @@ module.exports = function(app) {
       getAllBooks((err, data) => {
         if (err) {
           console.error(err);
-          res.status(400).send(err._message);
+          res.status(400).send(err.message);
         } else {
           const result = createBookListing(data)
             .then(result => {
@@ -85,7 +85,7 @@ module.exports = function(app) {
             })
             .catch(err => {
               console.error(err);
-              res.status(400).send(err._message);
+              res.status(400).send(err.message);
             });
         }
       });

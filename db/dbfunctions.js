@@ -59,33 +59,48 @@ const createComment = (bookId, comment, cb) => {
 
 // Read
 const getBookByBookId = (bookId, cb) => {
-  Book.find({_id: bookId}, (err, data) => {
-    if (err) {
-      cb(err, null);
-    } else {
-      cb(null, data[0]);
-    }
-  });
+  try {
+    const bookObjectId = new mongoose.Types.ObjectId(bookId);
+    Book.find({_id: bookObjectId}, (err, data) => {
+      if (err) {
+        cb(err, null);
+      } else {
+        cb(null, data[0]);
+      }
+    });
+  } catch (err) {
+    cb(err, null);
+  }
 };
 
 const getCommentCountByBookId = (bookId, cb) => {
-  Comment.countDocuments({book: bookId}, (err, data) => {
-    if (err) {
-      cb(err, null);
-    } else {
-      cb(null, data);
-    }
-  });
+  try {
+    const bookObjectId = new mongoose.Types.ObjectId(bookId);
+    Comment.countDocuments({book: bookObjectId}, (err, data) => {
+      if (err) {
+        cb(err, null);
+      } else {
+        cb(null, data);
+      }
+    });
+  } catch (err) {
+    cb(err, null);
+  }
 };
 
 const getCommentsByBookId = (bookId, cb) => {
-  Comment.find({book: bookId}, (err, data) => {
-    if (err) {
-      cb(err, null);
-    } else {
-      cb(null, data);
-    }
-  });
+  try {
+    const bookObjectId = new mongoose.Types.ObjectId(bookId);
+    Comment.find({book: bookObjectId}, (err, data) => {
+      if (err) {
+        cb(err, null);
+      } else {
+        cb(null, data);
+      }
+    });
+  } catch (err) {
+    cb(err, null);
+  }
 };
 
 const getAllBooks = (cb) => {
@@ -111,19 +126,29 @@ const updateCommentById = (commentId, cb) => {
 
 // Delete
 const deleteBookById = (bookId, cb) => {
-  Book.findByIdAndRemove(bookId, {useFindAndModify: false}, (err, book) => {
-    if (err) {
-      cb(err, null);
-    } else {
-      Comment.deleteMany({book: book._id}, (err, data) => {
+  try {
+    const bookObjectId = new mongoose.Types.ObjectId(bookId);
+    Book.findByIdAndRemove(bookObjectId, {useFindAndModify: false},
+      (err, book) => {
         if (err) {
           cb(err, null);
         } else {
-          cb(null, data);
+          if (book) {
+            Comment.deleteMany({book: book._id}, (err, data) => {
+              if (err) {
+                cb(err, null);
+              } else {
+                cb(null, data);
+              }
+            });
+          } else {
+            cb(null, book);
+          }
         }
       });
-    }
-  });
+  } catch (err) {
+    cb(err, null);
+  }
 };
 
 const deleteAllBooks = (cb) => {
